@@ -1,34 +1,50 @@
+const exec = require('child_process').exec
+window.jQuery = window.$ = require('./lib/jquery.min.js')
+
 function handleFileSelect(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    let files = event.dataTransfer.files;
-    preview(exec, files[0]);
+    event.stopPropagation()
+    event.preventDefault()
+    let file = event.dataTransfer.files[0]
+    let fileName = file.name
+    let filePath = file.path
+    let bitrateIndex = $("#video-bitrate").prop("selectedIndex")
+    let bitrateTable = ['4096k', '2048k', '1024k', '512k']
+    let bitrate = bitrateTable[bitrateIndex]
+    preview(bitrate, fileName, filePath)
+    $("#encodeButton").click(function() {
+      let child
+      child = exec(`bash -x encode.sh ${bitrate} ${filePath} -x`,
+          function(error, stdout, stderr) {
+            $("#statusLog").text(stderr)
+            if (error !== null) {
+              console.log(error)
+            }
+          })
+    })
 }
 
 function handleDragOver(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+    event.stopPropagation()
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
 }
 
-let previewArea = document.getElementById("previewArea");
-previewArea.addEventListener('dragover', handleDragOver, false);
-previewArea.addEventListener('drop', handleFileSelect, false);
-
-let exec = require('child_process').exec;
-
-function preview(exec, file) {
-    let child;
-    let fileName = file.name;
-    let filePath = file.path;
-    child = exec('bash preview.sh ' + filePath,
+function preview(bitrate, fileName, filePath) {
+    let child
+    child = exec(`bash -x preview.sh ${bitrate} ${filePath}`,
         function(error, stdout, stderr) {
-            console.log(stdout);
+            $("#statusLog").text(stderr)
+            $("#preview_first").attr("src", "./temp/" + fileName.replace(".mp4", "_first.jpg"))
+            $("#preview_mid").attr("src", "./temp/" + fileName.replace(".mp4", "_mid.jpg"))
+            $("#preview_last").attr("src", "./temp/" + fileName.replace(".mp4", "_last.jpg"))
             if (error !== null) {
-                console.log(error);
+                console.log(error)
             }
-        });
-    $("#preview_first").src = filePath.replace(".mp4", "_first.jpg");
-    $("#preview_mid").src = filePath.replace(".mp4", "_mid.jpg");
-    $("#preview_last").src = filePath.replace(".mp4", "_last.jpg");
+        })
+}
+
+window.onload = function() {
+  let previewArea = document.getElementById("previewArea")
+  previewArea.addEventListener('dragover', handleDragOver, false)
+  previewArea.addEventListener('drop', handleFileSelect, false)
 }

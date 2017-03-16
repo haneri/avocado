@@ -2,6 +2,7 @@
   height: 400px;
   width: 900px;
   background-color: gray;
+  overflow: scroll;
 }
 
 #preview_first, #preview_mid, #preview_last {
