@@ -1,0 +1,9 @@
+#previewArea {
+  height: 400px;
+  width: 900px;
+  background-color: gray;
+}
+
+#preview_first, #preview_mid, #preview_last {
+  width: 100%;
+}
