@@ -1,5 +1,4 @@
 const exec = require('child_process').exec
-window.jQuery = window.$ = require('./lib/jquery.min.js')
 
 function handleFileSelect(event) {
     event.stopPropagation()
@@ -7,20 +6,10 @@ function handleFileSelect(event) {
     let file = event.dataTransfer.files[0]
     let fileName = file.name
     let filePath = file.path
-    let bitrateIndex = $("#video-bitrate").prop("selectedIndex")
+    let bitrateIndex = document.getElementById("video-bitrate").selectedIndex
     let bitrateTable = ['4096k', '2048k', '1024k', '512k']
     let bitrate = bitrateTable[bitrateIndex]
     preview(bitrate, fileName, filePath)
-    $("#encodeButton").click(function() {
-      let child
-      child = exec(`bash -x encode.sh ${bitrate} ${filePath} -x`,
-          function(error, stdout, stderr) {
-            $("#statusLog").text(stderr)
-            if (error !== null) {
-              console.log(error)
-            }
-          })
-    })
 }
 
 function handleDragOver(event) {
@@ -33,10 +22,21 @@ function preview(bitrate, fileName, filePath) {
     let child
     child = exec(`bash -x preview.sh ${bitrate} ${filePath}`,
         function(error, stdout, stderr) {
-            $("#statusLog").text(stderr)
-            $("#preview_first").attr("src", "./temp/" + fileName.replace(".mp4", "_first.jpg"))
-            $("#preview_mid").attr("src", "./temp/" + fileName.replace(".mp4", "_mid.jpg"))
-            $("#preview_last").attr("src", "./temp/" + fileName.replace(".mp4", "_last.jpg"))
+            document.getElementById("statusLog").textContent = stdout
+            document.getElementById("preview_first").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_first.jpg"))
+            document.getElementById("preview_mid").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_mid.jpg"))
+            document.getElementById("preview_last").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_last.jpg"))
+            if (error !== null) {
+                console.log(error)
+            }
+        })
+}
+
+function encodeVideo(bitrate, filePath) {
+    let child
+    child = exec(`bash -x encode.sh ${bitrate} ${filePath} -x`,
+        function(error, stdout, stderr) {
+            document.getElementById("statusLog").textContent = stdout
             if (error !== null) {
                 console.log(error)
             }
@@ -44,7 +44,8 @@ function preview(bitrate, fileName, filePath) {
 }
 
 window.onload = function() {
-  let previewArea = document.getElementById("previewArea")
-  previewArea.addEventListener('dragover', handleDragOver, false)
-  previewArea.addEventListener('drop', handleFileSelect, false)
+    let previewArea = document.getElementById("previewArea")
+    previewArea.addEventListener('dragover', handleDragOver, false)
+    previewArea.addEventListener('drop', handleFileSelect, false)
+    document.getElementById("encodeButton").addEventListener('click', encodeVideo, false)
 }
