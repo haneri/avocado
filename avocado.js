@@ -35,7 +35,7 @@ function preview(bitrate, fileName) {
     exec(`ffprobe -show_entries format=duration ${filePath} 2> /dev/null | grep duration\= | cut -d \= -f 2`,
         function(error, stdout, stderr) {
             let estimatedSize = (stdout - 0) * (bitrate.slice(0, -1) - 0) / (8 * 1024)
-            document.getElementById("statusLog").textContent += Math.round(estimatedSize * 10) / 10 + "MB" // 小数第一位まで表示
+            document.getElementById("statusLog").textContent += "予想ファイルサイズ: " + Math.round(estimatedSize * 10) / 10 + "MB\n" // 小数第一位まで表示
         })
 }
 
@@ -50,7 +50,13 @@ function encodeVideo() {
             if (error !== null) {
                 console.log(error)
             }
+            let downloadLink = document.createElement("a")
+            downloadLink.setAttribute("href", filePath.replace(".mp4", "_output_" + bitrate + ".mp4"))
+            downloadLink.setAttribute("download", "")
+            downloadLink.text = "ダウンロード"
+            document.getElementById("status").appendChild(downloadLink)
         })
+
 }
 
 window.onload = function() {
