@@ -1,15 +1,19 @@
 const exec = require('child_process').exec
+let filePath = null
 
 function handleFileSelect(event) {
     event.stopPropagation()
     event.preventDefault()
     let file = event.dataTransfer.files[0]
     let fileName = file.name
-    let filePath = file.path
+    filePath = file.path
     let bitrateIndex = document.getElementById("video-bitrate").selectedIndex
     let bitrateTable = ['4096k', '2048k', '1024k', '512k']
     let bitrate = bitrateTable[bitrateIndex]
-    preview(bitrate, fileName, filePath)
+    document.getElementById("preview_first").setAttribute("src", "")
+    document.getElementById("preview_mid").setAttribute("src", "")
+    document.getElementById("preview_last").setAttribute("src", "")
+    preview(bitrate, fileName)
 }
 
 function handleDragOver(event) {
@@ -18,11 +22,9 @@ function handleDragOver(event) {
     event.dataTransfer.dropEffect = 'copy'
 }
 
-function preview(bitrate, fileName, filePath) {
-    let child
-    child = exec(`bash -x preview.sh ${bitrate} ${filePath}`,
+function preview(bitrate, fileName) {
+    exec(`bash -x preview.sh ${bitrate} ${filePath}`,
         function(error, stdout, stderr) {
-            document.getElementById("statusLog").textContent = stdout
             document.getElementById("preview_first").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_first.jpg"))
             document.getElementById("preview_mid").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_mid.jpg"))
             document.getElementById("preview_last").setAttribute("src", "./temp/" + fileName.replace(".mp4", "_last.jpg"))
@@ -30,13 +32,21 @@ function preview(bitrate, fileName, filePath) {
                 console.log(error)
             }
         })
+    exec(`ffprobe -show_entries format=duration ${filePath} 2> /dev/null | grep duration\= | cut -d \= -f 2`,
+        function(error, stdout, stderr) {
+            let estimatedSize = (stdout - 0) * (bitrate.slice(0, -1) - 0) / (8 * 1024)
+            document.getElementById("statusLog").textContent += Math.round(estimatedSize * 10) / 10 + "MB" // 小数第一位まで表示
+        })
 }
 
-function encodeVideo(bitrate, filePath) {
-    let child
-    child = exec(`bash -x encode.sh ${bitrate} ${filePath} -x`,
+function encodeVideo() {
+    document.getElementById("statusLog").textContent = "エンコード中...\n"
+    let bitrateIndex = document.getElementById("video-bitrate").selectedIndex
+    let bitrateTable = ['4096k', '2048k', '1024k', '512k']
+    let bitrate = bitrateTable[bitrateIndex]
+    exec(`bash -x encode.sh ${bitrate} ${filePath}`,
         function(error, stdout, stderr) {
-            document.getElementById("statusLog").textContent = stdout
+            document.getElementById("statusLog").textContent += stdout
             if (error !== null) {
                 console.log(error)
             }

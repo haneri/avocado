@@ -19,4 +19,3 @@ ffmpeg -ss 0 -i ./temp/preview_first_temp.mp4 -vframes 1 $preview_first
 ffmpeg -ss 0 -i ./temp/preview_mid_temp.mp4 -vframes 1 $preview_mid
 ffmpeg -ss 0 -i ./temp/preview_last_temp.mp4 -vframes 1 $preview_last
 mv $preview_first $preview_mid $preview_last temp
-echo "予想ファイルサイズ: 9.9MB"
