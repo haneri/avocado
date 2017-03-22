@@ -14,6 +14,7 @@ function handleFileSelect(event) {
     document.getElementById("preview_mid").setAttribute("src", "")
     document.getElementById("preview_last").setAttribute("src", "")
     preview(bitrate, fileName)
+    console.log('here')
 }
 
 function handleDragOver(event) {
